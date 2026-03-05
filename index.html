@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Wallet | Bit Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+        
+        :root {
+            --bit-cyan: #00e5ff;
+            --bit-dark-bg: #0d1117;
+            --bit-card-bg: rgba(22, 27, 34, 0.8);
+            --bit-text-primary: #f0f6fc;
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: var(--bit-dark-bg);
+            color: var(--bit-text-primary);
+            min-height: 100vh;
+            padding-bottom: 110px;
+        }
+
+        .bit-card {
+            background: var(--bit-card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        .pocket-chip {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 125px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pocket-chip.active {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-bottom-width: 4px;
+        }
+
+        .btn-bit {
+            background-color: var(--bit-cyan);
+            color: #000;
+            transition: all 0.2s;
+        }
+
+        .btn-bit:active {
+            transform: scale(0.96);
+            filter: brightness(0.9);
+        }
+
+        .nav-item {
+            color: #8b949e;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--bit-cyan);
+        }
+
+        .view-content {
+            display: none;
+        }
+
+        .view-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        input, select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--bit-cyan) !important;
+            outline: none;
+        }
+
+        /* Neon indicators */
+        .neon-text-shadow {
+            text-shadow: 0 0 10px currentColor;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-md mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight" style="color: var(--bit-cyan)">SmartWallet</h1>
+                <p id="viewSubtitle" class="text-gray-400 text-sm font-medium">ניהול כספים חכם ומעוצב</p>
+            </div>
+            <button onclick="toggleSettings()" class="w-12 h-12 bit-card flex items-center justify-center hover:bg-white/5 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- VIEW 1: ACTIONS -->
+        <div id="viewActions" class="view-content active">
+            <div class="bit-card p-6 shadow-2xl">
+                <div class="flex bg-white/5 p-1 rounded-2xl mb-8">
+                    <button id="typeIncome" onclick="setType('income')" class="flex-1 py-3 rounded-xl bg-white/10 text-emerald-400 font-bold transition-all">הכנסה</button>
+                    <button id="typeExpense" onclick="setType('expense')" class="flex-1 py-3 rounded-xl text-gray-500 font-bold transition-all">הוצאה</button>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 mr-2 mb-2 block">בחר כיס יעד</label>
+                        <select id="pocketSelect" class="w-full p-4 rounded-2xl font-bold appearance-none transition-all"></select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 mr-2 mb-2 block text-right">סכום הפעולה</label>
+                        <div class="relative">
+                            <input type="number" id="amount" class="w-full p-4 rounded-2xl text-3xl font-black text-left" placeholder="0.00">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-2xl">₪</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 mr-2 mb-2 block">תיאור (אופציונלי)</label>
+                        <input type="text" id="description" class="w-full p-4 rounded-2xl font-medium" placeholder="מה המטרה?">
+                    </div>
+
+                    <button id="saveBtn" onclick="saveTransaction()" class="w-full btn-bit font-black py-5 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span>עדכן ארנק</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: HISTORY -->
+        <div id="viewHistory" class="view-content">
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-gray-300">הכיסים שלך</h3>
+                    <button id="clearFilter" onclick="filterByPocket(null)" class="hidden text-xs font-bold px-3 py-1 rounded-full" style="color: var(--bit-cyan); background: rgba(0,229,255,0.1)">הצג הכל</button>
+                </div>
+                <div id="pocketsContainer" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                    <!-- Dynamic Chips -->
+                </div>
+            </div>
+
+            <h3 id="historyTitle" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 px-1">היסטוריה מלאה</h3>
+            
+            <div id="historyList" class="space-y-4">
+                <!-- Transactions here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-3xl border-t border-white/5 px-10 py-5 flex justify-around items-center z-40">
+        <button onclick="switchView('actions')" id="navActions" class="nav-item active flex flex-col items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            <span class="text-[10px] font-bold">חדש</span>
+        </button>
+        <button onclick="switchView('history')" id="navHistory" class="nav-item flex flex-col items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            <span class="text-[10px] font-bold">פעולות</span>
+        </button>
+    </nav>
+
+    <!-- Settings -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-end sm:items-center justify-center">
+        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp" style="background: #161b22">
+            <h3 class="text-xl font-extrabold mb-6" style="color: var(--bit-cyan)">הגדרות כיסים</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 block mb-3 uppercase">הוספת כיס חדש</label>
+                    <div class="flex gap-2">
+                        <button onclick="addPocket()" class="btn-bit px-6 rounded-2xl font-bold">+</button>
+                        <input type="text" id="newPocketName" class="flex-1 p-4 rounded-2xl font-bold text-right" placeholder="שם הכיס">
+                    </div>
+                </div>
+                <div id="pocketsManagerList" class="max-h-60 overflow-y-auto space-y-3 no-scrollbar"></div>
+            </div>
+            <button onclick="toggleSettings()" class="w-full mt-8 py-4 text-gray-400 font-bold bg-white/5 rounded-2xl hover:bg-white/10">סגור</button>
+        </div>
+    </div>
+
+    <script>
+        // High Contrast Neon Colors for Pocket differentiation
+        const POCKET_NEON_COLORS = [
+            '#00e5ff', // Bit Cyan
+            '#bf5af2', // Electric Purple
+            '#ffd60a', // Vivid Yellow/Lime
+            '#ff9f0a', // Bright Orange
+            '#ff375f', // Hot Pink
+            '#30d158'  // Neon Green
+        ];
+
+        let transactions = JSON.parse(localStorage.getItem('bit_wallet_tx_v3')) || [];
+        let pockets = JSON.parse(localStorage.getItem('bit_wallet_pockets_v3')) || [
+            { id: 'p1', name: 'עובר ושב', balance: 0, color: POCKET_NEON_COLORS[0] },
+            { id: 'p2', name: 'חיסכון', balance: 0, color: POCKET_NEON_COLORS[1] },
+            { id: 'p3', name: 'מזומן', balance: 0, color: POCKET_NEON_COLORS[2] }
+        ];
+
+        let currentType = 'income';
+        let selectedFilter = null;
+
+        window.onload = () => {
+            renderPockets();
+            updateUI();
+        };
+
+        function saveData() {
+            localStorage.setItem('bit_wallet_tx_v3', JSON.stringify(transactions));
+            localStorage.setItem('bit_wallet_pockets_v3', JSON.stringify(pockets));
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            if (view === 'actions') {
+                document.getElementById('viewActions').classList.add('active');
+                document.getElementById('navActions').classList.add('active');
+            } else {
+                document.getElementById('viewHistory').classList.add('active');
+                document.getElementById('navHistory').classList.add('active');
+                updateUI();
+            }
+        }
+
+        function setType(type) {
+            currentType = type;
+            const incBtn = document.getElementById('typeIncome');
+            const expBtn = document.getElementById('typeExpense');
+            if (type === 'income') {
+                incBtn.className = "flex-1 py-3 rounded-xl bg-white/10 text-emerald-400 font-bold transition-all";
+                expBtn.className = "flex-1 py-3 rounded-xl text-gray-500 font-bold transition-all";
+            } else {
+                expBtn.className = "flex-1 py-3 rounded-xl bg-white/10 text-rose-400 font-bold transition-all";
+                incBtn.className = "flex-1 py-3 rounded-xl text-gray-500 font-bold transition-all";
+            }
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsModal').classList.toggle('hidden');
+        }
+
+        function filterByPocket(id) {
+            selectedFilter = id;
+            renderPockets();
+            updateUI();
+        }
+
+        function addPocket() {
+            const name = document.getElementById('newPocketName').value.trim();
+            if (!name) return;
+            const color = POCKET_NEON_COLORS[pockets.length % POCKET_NEON_COLORS.length];
+            pockets.push({ id: 'p' + Date.now(), name, balance: 0, color });
+            document.getElementById('newPocketName').value = '';
+            saveData();
+            renderPockets();
+        }
+
+        function removePocket(id) {
+            if (pockets.length <= 1) return alert("חייב להישאר לפחות כיס אחד");
+            pockets = pockets.filter(p => p.id !== id);
+            if (selectedFilter === id) selectedFilter = null;
+            saveData();
+            renderPockets();
+            updateUI();
+        }
+
+        function renderPockets() {
+            const container = document.getElementById('pocketsContainer');
+            const select = document.getElementById('pocketSelect');
+            const manager = document.getElementById('pocketsManagerList');
+            const clearBtn = document.getElementById('clearFilter');
+            
+            container.innerHTML = '';
+            select.innerHTML = '';
+            manager.innerHTML = '';
+
+            selectedFilter ? clearBtn.classList.remove('hidden') : clearBtn.classList.add('hidden');
+
+            pockets.forEach(p => {
+                const isActive = selectedFilter === p.id;
+                
+                // Pocket Filter Chip
+                const chip = document.createElement('div');
+                chip.onclick = () => filterByPocket(p.id);
+                chip.className = `bit-card p-4 pocket-chip flex-shrink-0 flex flex-col items-center justify-center cursor-pointer ${isActive ? 'active' : ''}`;
+                if (isActive) {
+                    chip.style.borderColor = p.color;
+                    chip.style.borderBottomColor = p.color;
+                }
+
+                chip.innerHTML = `
+                    <span class="text-[10px] font-black uppercase tracking-widest mb-1 neon-text-shadow" style="color: ${p.color}">${p.name}</span>
+                    <span class="text-base font-bold text-white">₪${p.balance.toLocaleString()}</span>
+                `;
+                container.appendChild(chip);
+
+                // Pocket Option in Form
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.innerText = p.name;
+                select.appendChild(opt);
+
+                // Settings Item
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center p-4 rounded-2xl border-r-4";
+                item.style.background = 'rgba(255,255,255,0.03)';
+                item.style.borderColor = p.color;
+                item.innerHTML = `
+                    <span class="font-bold text-gray-300">${p.name}</span>
+                    <button onclick="removePocket('${p.id}')" class="text-rose-500 font-bold text-xs uppercase">מחק</button>
+                `;
+                manager.appendChild(item);
+            });
+        }
+
+        function saveTransaction() {
+            const amountInput = document.getElementById('amount');
+            const descInput = document.getElementById('description');
+            const pocketId = document.getElementById('pocketSelect').value;
+            const amount = parseFloat(amountInput.value);
+
+            if (isNaN(amount) || amount <= 0) return alert("נא להזין סכום תקין");
+
+            const pocket = pockets.find(p => p.id === pocketId);
+            const transaction = {
+                id: Date.now(),
+                type: currentType,
+                amount,
+                pocketName: pocket.name,
+                pocketId: pocketId,
+                pocketColor: pocket.color,
+                description: descInput.value || (currentType === 'income' ? "הכנסה" : "הוצאה"),
+                date: new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'})
+            };
+
+            currentType === 'income' ? pocket.balance += amount : pocket.balance -= amount;
+            transactions.unshift(transaction);
+            saveData();
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerHTML = `<span>עודכן!</span>`;
+            saveBtn.style.backgroundColor = '#30d158'; // Success green
+
+            setTimeout(() => {
+                saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg><span>עדכן ארנק</span>`;
+                saveBtn.style.backgroundColor = '';
+                amountInput.value = '';
+                descInput.value = '';
+                renderPockets();
+                setTimeout(() => switchView('history'), 200);
+            }, 800);
+        }
+
+        function updateUI() {
+            const list = document.getElementById('historyList');
+            const title = document.getElementById('historyTitle');
+            list.innerHTML = '';
+
+            const filtered = selectedFilter ? transactions.filter(t => t.pocketId === selectedFilter) : transactions;
+            
+            if (selectedFilter) {
+                const p = pockets.find(p => p.id === selectedFilter);
+                title.innerHTML = `פעולות בכיס <span style="color: ${p?.color || 'var(--bit-cyan)'}">${p?.name}</span>`;
+            } else {
+                title.innerText = "כל הפעולות";
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-20 text-gray-600 font-bold">אין תנועות עדיין</div>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                const card = document.createElement('div');
+                card.className = "bit-card p-5 flex justify-between items-center animate__animated animate__fadeInUp";
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center ${t.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
+                            ${t.type === 'income' ? '↑' : '↓'}
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-white text-base leading-tight mb-1">${t.description}</p>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider" style="color: ${t.pocketColor}; background: ${t.pocketColor}15; border: 1px solid ${t.pocketColor}40">
+                                    ${t.pocketName}
+                                </span>
+                                <span class="text-[10px] font-medium text-gray-500">${t.date}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-black text-lg ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}">
+                            ${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()} ₪
+                        </p>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
+
