@@ -3,159 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Wallet | Bit Edition</title>
+    <title>Smart Wallet | Light Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
         
         :root {
-            --bit-cyan: #00e5ff;
-            /* Default Dark Theme */
-            --bit-dark-bg: #0d1117;
-            --bit-card-bg: rgba(22, 27, 34, 0.8);
-            --bit-text-primary: #f0f6fc;
-            --bit-nav-bg: rgba(0, 0, 0, 0.6);
-            --bit-input-bg: rgba(255, 255, 255, 0.05);
-        }
-
-        body.light-mode {
-            --bit-dark-bg: #f5f7f9;
-            --bit-card-bg: rgba(255, 255, 255, 0.9);
-            --bit-text-primary: #1c1e21;
-            --bit-nav-bg: rgba(255, 255, 255, 0.8);
-            --bit-input-bg: rgba(0, 0, 0, 0.03);
+            --bit-cyan: #00bcd4;
+            --bit-bg: #f8fafc;
+            --bit-card-bg: #ffffff;
+            --bit-text-main: #0f172a;
+            --bit-text-muted: #64748b;
+            --color-income-bg: #dcfce7;
+            --color-income-text: #064e3b;
+            --color-expense-bg: #fee2e2;
+            --color-expense-text: #450a0a;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
         }
 
         body {
             font-family: 'Assistant', sans-serif;
-            background-color: var(--bit-dark-bg);
-            color: var(--bit-text-primary);
+            background-color: var(--bit-bg);
+            color: var(--bit-text-main);
             min-height: 100vh;
             padding-bottom: 110px;
-            transition: background-color 0.3s ease;
         }
 
         .bit-card {
             background: var(--bit-card-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-        }
-
-        .light-mode .bit-card {
             border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s ease;
         }
 
+        .action-card-income { background: var(--color-income-bg) !important; color: var(--color-income-text) !important; }
+        .action-card-expense { background: var(--color-expense-bg) !important; color: var(--color-expense-text) !important; }
+
+        /* Pocket Chip Styling - Updated for full color and larger text */
         .pocket-chip {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 125px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 140px;
+            padding: 1.25rem;
+            border: none;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
-        .light-mode .pocket-chip {
-            background: rgba(0, 0, 0, 0.02);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+        .pocket-chip.inactive {
+            opacity: 0.6;
+            transform: scale(0.95);
+            filter: grayscale(0.2);
         }
 
         .pocket-chip.active {
-            background: rgba(255, 255, 255, 0.07);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            border-bottom-width: 4px;
-        }
-
-        .light-mode .pocket-chip.active {
-            background: white;
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
         }
 
         .btn-bit {
-            background-color: var(--bit-cyan);
-            color: #000;
+            background-color: var(--bit-text-main);
+            color: white;
             transition: all 0.2s;
         }
 
-        .btn-bit:active {
-            transform: scale(0.96);
-            filter: brightness(0.9);
-        }
+        .nav-item { color: var(--bit-text-muted); transition: all 0.2s ease; }
+        .nav-item.active { color: var(--bit-cyan); }
 
-        .nav-item {
-            color: #8b949e;
-            transition: all 0.2s ease;
-        }
-
-        .light-mode .nav-item {
-            color: #6a737d;
-        }
-
-        .nav-item.active {
-            color: var(--bit-cyan);
-        }
-
-        .view-content {
-            display: none;
-        }
-
-        .view-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .view-content { display: none; }
+        .view-content.active { display: block; animation: fadeIn 0.3s ease-out; }
 
         input, select {
-            background: var(--bit-input-bg) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: var(--bit-text-primary) !important;
-        }
-
-        .light-mode input, .light-mode select {
+            background: rgba(0, 0, 0, 0.03) !important;
             border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: var(--bit-text-main) !important;
         }
 
-        input:focus, select:focus {
-            border-color: var(--bit-cyan) !important;
-            outline: none;
+        .history-card {
+            border: none !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .history-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: currentColor;
+            opacity: 0.22;
+            z-index: 0;
         }
 
-        .neon-text-shadow {
-            text-shadow: 0 0 10px currentColor;
-        }
+        .history-card > * { position: relative; z-index: 1; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        .delete-btn {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .bit-card:hover .delete-btn {
-            opacity: 1;
-        }
-
-        /* Color Picker Styling */
-        input[type="color"] {
-            -webkit-appearance: none;
-            border: none;
-            width: 44px;
-            height: 44px;
-            cursor: pointer;
-            background: transparent;
-            padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch {
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-        }
-
-        @media (max-width: 640px) {
-            .delete-btn { opacity: 0.6; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -165,18 +112,13 @@
         <!-- Header -->
         <header class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight" style="color: var(--bit-cyan)">SmartWallet</h1>
-                <p id="viewSubtitle" class="text-gray-400 text-sm font-medium">ניהול כספים חכם ומעוצב</p>
+                <h1 class="text-3xl font-extrabold tracking-tight">SmartWallet</h1>
+                <p class="text-slate-500 text-sm font-medium">ניהול כספים חכם ומעוצב</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleTheme()" class="w-12 h-12 bit-card flex items-center justify-center hover:bg-white/5 transition" title="שנה מצב תאורה">
-                    <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <!-- Moon icon will be inserted by JS -->
-                    </svg>
-                </button>
-                <button onclick="toggleSettings()" class="w-12 h-12 bit-card flex items-center justify-center hover:bg-white/5 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                <button onclick="toggleSettings()" class="w-12 h-12 bit-card flex items-center justify-center hover:bg-slate-100 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                     </svg>
                 </button>
             </div>
@@ -184,32 +126,32 @@
 
         <!-- VIEW 1: ACTIONS -->
         <div id="viewActions" class="view-content active">
-            <div class="bit-card p-6 shadow-2xl">
-                <div class="flex bg-white/5 p-1 rounded-2xl mb-8">
-                    <button id="typeIncome" onclick="setType('income')" class="flex-1 py-3 rounded-xl bg-white/10 text-emerald-400 font-bold transition-all">הכנסה</button>
-                    <button id="typeExpense" onclick="setType('expense')" class="flex-1 py-3 rounded-xl text-gray-500 font-bold transition-all">הוצאה</button>
+            <div id="actionCard" class="bit-card p-6 shadow-xl action-card-income">
+                <div class="flex bg-black/5 p-1 rounded-2xl mb-8">
+                    <button id="typeIncome" onclick="setType('income')" class="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-sm transition-all">הכנסה</button>
+                    <button id="typeExpense" onclick="setType('expense')" class="flex-1 py-3 rounded-xl text-slate-600 font-bold transition-all">הוצאה</button>
                 </div>
 
                 <div class="space-y-6">
                     <div>
-                        <label class="text-xs font-bold text-gray-500 mr-2 mb-2 block">בחר כיס יעד</label>
-                        <select id="pocketSelect" class="w-full p-4 rounded-2xl font-bold appearance-none transition-all"></select>
+                        <label class="text-xs font-bold mb-2 block">בחר כיס יעד</label>
+                        <select id="pocketSelect" class="w-full p-4 rounded-2xl font-bold outline-none"></select>
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-500 mr-2 mb-2 block text-right">סכום הפעולה</label>
+                        <label class="text-xs font-bold mb-2 block text-right">סכום הפעולה</label>
                         <div class="relative">
-                            <input type="number" id="amount" class="w-full p-4 rounded-2xl text-3xl font-black text-left" placeholder="0.00">
-                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-2xl">₪</span>
+                            <input type="number" id="amount" class="w-full p-4 rounded-2xl text-3xl font-black text-left outline-none" placeholder="0.00">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-bold opacity-40 text-2xl">₪</span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-500 mr-2 mb-2 block">תיאור (אופציונלי)</label>
-                        <input type="text" id="description" class="w-full p-4 rounded-2xl font-medium" placeholder="מה המטרה?">
+                        <label class="text-xs font-bold mb-2 block">תיאור (אופציונלי)</label>
+                        <input type="text" id="description" class="w-full p-4 rounded-2xl font-medium outline-none" placeholder="מה המטרה?">
                     </div>
 
-                    <button id="saveBtn" onclick="saveTransaction()" class="w-full btn-bit font-black py-5 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+                    <button id="saveBtn" onclick="saveTransaction()" class="w-full btn-bit font-black py-5 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                         <span>עדכן ארנק</span>
                     </button>
@@ -221,102 +163,72 @@
         <div id="viewHistory" class="view-content">
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-bold text-gray-300">הכיסים שלך</h3>
-                    <button id="clearFilter" onclick="filterByPocket(null)" class="hidden text-xs font-bold px-3 py-1 rounded-full" style="color: var(--bit-cyan); background: rgba(0,229,255,0.1)">הצג הכל</button>
+                    <h3 class="font-bold text-slate-700">הכיסים שלך</h3>
+                    <button id="clearFilter" onclick="filterByPocket(null)" class="hidden text-xs font-bold px-3 py-1 rounded-full bg-slate-200 text-slate-700">הצג הכל</button>
                 </div>
-                <div id="pocketsContainer" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-                    <!-- Dynamic Chips -->
-                </div>
+                <!-- Pockets Container with larger UI -->
+                <div id="pocketsContainer" class="flex gap-4 overflow-x-auto pb-6 pt-2 no-scrollbar"></div>
             </div>
 
-            <h3 id="historyTitle" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 px-1">היסטוריה מלאה</h3>
-            
-            <div id="historyList" class="space-y-4">
-                <!-- Transactions here -->
-            </div>
+            <h3 id="historyTitle" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 px-1">כל הפעולות</h3>
+            <div id="historyList" class="space-y-4"></div>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-3xl border-t border-white/5 px-10 py-5 flex justify-around items-center z-40" style="background: var(--bit-nav-bg)">
+    <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-100 px-10 py-5 flex justify-around items-center z-40 bg-white/90 backdrop-blur-xl shadow-lg">
         <button onclick="switchView('actions')" id="navActions" class="nav-item active flex flex-col items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             <span class="text-[10px] font-bold">חדש</span>
         </button>
         <button onclick="switchView('history')" id="navHistory" class="nav-item flex flex-col items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2" /></svg>
             <span class="text-[10px] font-bold">פעולות</span>
         </button>
     </nav>
 
-    <!-- Settings -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-end sm:items-center justify-center">
-        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp" style="background: #161b22">
-            <h3 class="text-xl font-extrabold mb-6" style="color: var(--bit-cyan)">הגדרות כיסים</h3>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center">
+        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp bg-white">
+            <h3 class="text-xl font-extrabold mb-6 text-slate-900">הגדרות כיסים</h3>
             <div class="space-y-6">
                 <div>
-                    <label class="text-xs font-bold text-gray-500 block mb-3 uppercase">הוספת כיס חדש</label>
+                    <label class="text-xs font-bold text-slate-500 block mb-3 uppercase">הוספת כיס חדש</label>
                     <div class="flex items-center gap-3">
-                        <div class="relative group">
-                            <input type="color" id="newPocketColor" value="#00e5ff" title="בחר צבע לכיס">
-                        </div>
-                        <input type="text" id="newPocketName" class="flex-1 p-4 rounded-2xl font-bold text-right" placeholder="שם הכיס" style="background: rgba(255,255,255,0.05) !important;">
-                        <button onclick="addPocket()" class="btn-bit w-12 h-12 rounded-2xl font-bold flex items-center justify-center shadow-lg">+</button>
+                        <input type="color" id="newPocketColor" value="#0ea5e9" class="cursor-pointer h-12 w-12 rounded-xl border-none p-0">
+                        <input type="text" id="newPocketName" class="flex-1 p-4 rounded-2xl font-bold text-right outline-none" placeholder="שם הכיס">
+                        <button onclick="addPocket()" class="btn-bit w-12 h-12 rounded-2xl font-bold flex items-center justify-center shadow-md">+</button>
                     </div>
                 </div>
                 <div id="pocketsManagerList" class="max-h-60 overflow-y-auto space-y-3 no-scrollbar"></div>
             </div>
-            <button onclick="toggleSettings()" class="w-full mt-8 py-4 text-gray-400 font-bold bg-white/5 rounded-2xl hover:bg-white/10">סגור</button>
+            <button onclick="toggleSettings()" class="w-full mt-8 py-4 text-slate-500 font-bold bg-slate-100 rounded-2xl">סגור</button>
         </div>
     </div>
 
     <script>
-        const POCKET_NEON_COLORS = ['#00e5ff', '#bf5af2', '#ffd60a', '#ff9f0a', '#ff375f', '#30d158'];
-
-        let transactions = JSON.parse(localStorage.getItem('bit_wallet_tx_v3')) || [];
-        let pockets = JSON.parse(localStorage.getItem('bit_wallet_pockets_v3')) || [
-            { id: 'p1', name: 'עובר ושב', balance: 0, color: POCKET_NEON_COLORS[0] },
-            { id: 'p2', name: 'חיסכון', balance: 0, color: POCKET_NEON_COLORS[1] },
-            { id: 'p3', name: 'מזומן', balance: 0, color: POCKET_NEON_COLORS[2] }
+        let transactions = JSON.parse(localStorage.getItem('bit_wallet_tx_light')) || [];
+        let pockets = JSON.parse(localStorage.getItem('bit_wallet_pockets_light')) || [
+            { id: 'p1', name: 'עובר ושב', balance: 0, color: '#0ea5e9' },
+            { id: 'p2', name: 'חיסכון', balance: 0, color: '#8b5cf6' },
+            { id: 'p3', name: 'מזומן', balance: 0, color: '#f59e0b' }
         ];
-        let isDarkMode = localStorage.getItem('bit_theme') !== 'light';
-
         let currentType = 'income';
         let selectedFilter = null;
 
         window.onload = () => {
-            applyTheme();
             renderPockets();
             updateUI();
         };
 
-        function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('bit_theme', isDarkMode ? 'dark' : 'light');
-            applyTheme();
-        }
-
-        function applyTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            if (isDarkMode) {
-                body.classList.remove('light-mode');
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
-            } else {
-                body.classList.add('light-mode');
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />`;
-            }
-        }
-
         function saveData() {
-            localStorage.setItem('bit_wallet_tx_v3', JSON.stringify(transactions));
-            localStorage.setItem('bit_wallet_pockets_v3', JSON.stringify(pockets));
+            localStorage.setItem('bit_wallet_tx_light', JSON.stringify(transactions));
+            localStorage.setItem('bit_wallet_pockets_light', JSON.stringify(pockets));
         }
 
         function switchView(view) {
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             if (view === 'actions') {
                 document.getElementById('viewActions').classList.add('active');
                 document.getElementById('navActions').classList.add('active');
@@ -329,40 +241,28 @@
 
         function setType(type) {
             currentType = type;
+            const card = document.getElementById('actionCard');
             const incBtn = document.getElementById('typeIncome');
             const expBtn = document.getElementById('typeExpense');
             if (type === 'income') {
-                incBtn.className = "flex-1 py-3 rounded-xl bg-white/10 text-emerald-400 font-bold transition-all";
-                expBtn.className = "flex-1 py-3 rounded-xl text-gray-500 font-bold transition-all";
+                card.className = "bit-card p-6 shadow-xl action-card-income";
+                incBtn.className = "flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-sm transition-all";
+                expBtn.className = "flex-1 py-3 rounded-xl text-emerald-800 font-bold transition-all";
             } else {
-                expBtn.className = "flex-1 py-3 rounded-xl bg-white/10 text-rose-400 font-bold transition-all";
-                incBtn.className = "flex-1 py-3 rounded-xl text-gray-500 font-bold transition-all";
+                card.className = "bit-card p-6 shadow-xl action-card-expense";
+                expBtn.className = "flex-1 py-3 rounded-xl bg-rose-600 text-white font-bold shadow-sm transition-all";
+                incBtn.className = "flex-1 py-3 rounded-xl text-rose-800 font-bold transition-all";
             }
         }
 
-        function toggleSettings() {
-            document.getElementById('settingsModal').classList.toggle('hidden');
-        }
-
-        function filterByPocket(id) {
-            selectedFilter = id;
-            renderPockets();
-            updateUI();
-        }
+        function toggleSettings() { document.getElementById('settingsModal').classList.toggle('hidden'); }
 
         function addPocket() {
-            const nameInput = document.getElementById('newPocketName');
-            const colorInput = document.getElementById('newPocketColor');
-            const name = nameInput.value.trim();
-            const color = colorInput.value;
-
+            const name = document.getElementById('newPocketName').value.trim();
+            const color = document.getElementById('newPocketColor').value;
             if (!name) return;
-            
             pockets.push({ id: 'p' + Date.now(), name, balance: 0, color });
-            nameInput.value = '';
-            // Reset to a random default from the list for the next one
-            colorInput.value = POCKET_NEON_COLORS[Math.floor(Math.random() * POCKET_NEON_COLORS.length)];
-            
+            document.getElementById('newPocketName').value = '';
             saveData();
             renderPockets();
         }
@@ -370,23 +270,12 @@
         function removePocket(id) {
             if (pockets.length <= 1) return;
             pockets = pockets.filter(p => p.id !== id);
-            if (selectedFilter === id) selectedFilter = null;
             saveData();
             renderPockets();
-            updateUI();
         }
 
-        function deleteTransaction(id) {
-            const tx = transactions.find(t => t.id === id);
-            if (!tx) return;
-            
-            const pocket = pockets.find(p => p.id === tx.pocketId);
-            if (pocket) {
-                tx.type === 'income' ? pocket.balance -= tx.amount : pocket.balance += tx.amount;
-            }
-            
-            transactions = transactions.filter(t => t.id !== id);
-            saveData();
+        function filterByPocket(id) {
+            selectedFilter = id;
             renderPockets();
             updateUI();
         }
@@ -407,15 +296,14 @@
                 const isActive = selectedFilter === p.id;
                 const chip = document.createElement('div');
                 chip.onclick = () => filterByPocket(p.id);
-                chip.className = `bit-card p-4 pocket-chip flex-shrink-0 flex flex-col items-center justify-center cursor-pointer ${isActive ? 'active' : ''}`;
-                if (isActive) {
-                    chip.style.borderColor = p.color;
-                    chip.style.borderBottomColor = p.color;
-                }
+                
+                // Set pocket color as background, with opacity if inactive
+                chip.className = `bit-card pocket-chip flex-shrink-0 flex flex-col items-center justify-center cursor-pointer ${isActive ? 'active' : 'inactive'}`;
+                chip.style.backgroundColor = p.color;
 
                 chip.innerHTML = `
-                    <span class="text-[10px] font-black uppercase tracking-widest mb-1 neon-text-shadow" style="color: ${p.color}">${p.name}</span>
-                    <span class="text-base font-bold">₪${p.balance.toLocaleString()}</span>
+                    <span class="text-xs font-black uppercase tracking-widest mb-2 opacity-90">${p.name}</span>
+                    <span class="text-xl font-extrabold">₪${p.balance.toLocaleString()}</span>
                 `;
                 container.appendChild(chip);
 
@@ -425,16 +313,9 @@
                 select.appendChild(opt);
 
                 const item = document.createElement('div');
-                item.className = "flex justify-between items-center p-4 rounded-2xl border-r-4 animate__animated animate__fadeIn";
-                item.style.background = 'rgba(255,255,255,0.03)';
+                item.className = "flex justify-between items-center p-4 rounded-2xl border-r-4 bg-slate-50";
                 item.style.borderColor = p.color;
-                item.innerHTML = `
-                    <span class="font-bold text-gray-300">${p.name}</span>
-                    <div class="flex items-center gap-3">
-                        <div class="w-4 h-4 rounded-full shadow-sm" style="background: ${p.color}"></div>
-                        <button onclick="removePocket('${p.id}')" class="text-rose-500 font-bold text-xs uppercase hover:underline">מחק</button>
-                    </div>
-                `;
+                item.innerHTML = `<span class="font-bold">${p.name}</span><button onclick="removePocket('${p.id}')" class="text-rose-600 font-bold text-xs uppercase">מחק</button>`;
                 manager.appendChild(item);
             });
         }
@@ -448,8 +329,6 @@
             if (isNaN(amount) || amount <= 0) return;
 
             const pocket = pockets.find(p => p.id === pocketId);
-            if (!pocket) return;
-
             const transaction = {
                 id: Date.now(),
                 type: currentType,
@@ -466,63 +345,73 @@
             saveData();
 
             const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerHTML = `<span>עודכן!</span>`;
-            saveBtn.style.backgroundColor = '#30d158';
-
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = "<span>עודכן בהצלחה!</span>";
+            saveBtn.classList.replace('btn-bit', 'bg-emerald-600');
+            
             setTimeout(() => {
-                saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg><span>עדכן ארנק</span>`;
-                saveBtn.style.backgroundColor = '';
+                saveBtn.innerHTML = originalText;
+                saveBtn.className = "w-full btn-bit font-black py-5 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md";
                 amountInput.value = '';
                 descInput.value = '';
                 renderPockets();
-                setTimeout(() => switchView('history'), 200);
+                switchView('history');
             }, 800);
+        }
+
+        function deleteTransaction(id) {
+            const tx = transactions.find(t => t.id === id);
+            if (!tx) return;
+            const pocket = pockets.find(p => p.id === tx.pocketId);
+            if (pocket) tx.type === 'income' ? pocket.balance -= tx.amount : pocket.balance += tx.amount;
+            transactions = transactions.filter(t => t.id !== id);
+            saveData();
+            renderPockets();
+            updateUI();
         }
 
         function updateUI() {
             const list = document.getElementById('historyList');
             const title = document.getElementById('historyTitle');
             list.innerHTML = '';
-
             const filtered = selectedFilter ? transactions.filter(t => t.pocketId === selectedFilter) : transactions;
             
             if (selectedFilter) {
                 const p = pockets.find(p => p.id === selectedFilter);
-                title.innerHTML = `פעולות בכיס <span style="color: ${p?.color || 'var(--bit-cyan)'}">${p?.name}</span>`;
+                title.innerHTML = `פעולות בכיס <span style="color: ${p?.color}">${p?.name}</span>`;
             } else {
                 title.innerText = "כל הפעולות";
             }
 
             if (filtered.length === 0) {
-                list.innerHTML = `<div class="text-center py-20 text-gray-500 font-bold">אין תנועות עדיין</div>`;
+                list.innerHTML = `<div class="text-center py-20 opacity-40 font-bold">אין תנועות עדיין</div>`;
                 return;
             }
 
             filtered.forEach(t => {
                 const card = document.createElement('div');
-                card.className = "bit-card p-5 flex justify-between items-center animate__animated animate__fadeInUp group";
+                card.className = "bit-card p-5 flex justify-between items-center history-card animate__animated animate__fadeInUp group";
+                card.style.color = t.pocketColor;
+                const isIncome = t.type === 'income';
+                const actionColor = isIncome ? 'var(--color-success)' : 'var(--color-danger)';
+                
                 card.innerHTML = `
                     <div class="flex items-center gap-4">
-                        <button onclick="deleteTransaction(${t.id})" class="delete-btn w-8 h-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500/20" title="מחק פעולה">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center ${t.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
-                            ${t.type === 'income' ? '↑' : '↓'}
+                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/90 font-bold shadow-sm" style="color: ${actionColor}">
+                            ${isIncome ? '↑' : '↓'}
                         </div>
-                        <div class="text-right">
-                            <p class="font-bold text-base leading-tight mb-1">${t.description}</p>
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider" style="color: ${t.pocketColor}; background: ${t.pocketColor}15; border: 1px solid ${t.pocketColor}40">
-                                    ${t.pocketName}
-                                </span>
-                                <span class="text-[10px] font-medium text-gray-500">${t.date}</span>
-                            </div>
+                        <div>
+                            <p class="font-extrabold text-base leading-tight text-slate-900">${t.description}</p>
+                            <p class="text-[10px] font-bold text-slate-700">${t.date} • ${t.pocketName}</p>
                         </div>
                     </div>
-                    <div class="text-left">
-                        <p class="font-black text-lg ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}">
-                            ${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()} ₪
+                    <div class="flex items-center gap-4">
+                        <p class="font-black text-lg" style="color: ${actionColor}">
+                            ${isIncome ? '+' : '-'}${t.amount.toLocaleString()} ₪
                         </p>
+                        <button onclick="deleteTransaction(${t.id})" class="p-2 rounded-full hover:bg-black/10 transition-colors text-slate-900/60 hover:text-rose-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
                     </div>
                 `;
                 list.appendChild(card);
