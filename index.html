@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Wallet | Light Edition</title>
+    <title>Smart Wallet | Innovation Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -11,8 +11,8 @@
         
         :root {
             --bit-cyan: #00bcd4;
-            --bit-bg: #f8fafc;
-            --bit-card-bg: #ffffff;
+            --bit-bg: linear-gradient(135deg, #e0f2fe 0%, #ede9fe 50%, #fee2e2 100%);
+            --bit-card-bg: rgba(255, 255, 255, 0.7);
             --bit-text-main: #0f172a;
             --bit-text-muted: #64748b;
             --color-income-bg: #dcfce7;
@@ -25,7 +25,7 @@
 
         body {
             font-family: 'Assistant', sans-serif;
-            background-color: var(--bit-bg);
+            background: var(--bit-bg);
             color: var(--bit-text-main);
             min-height: 100vh;
             padding-bottom: 110px;
@@ -33,23 +33,38 @@
 
         .bit-card {
             background: var(--bit-card-bg);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
             transition: all 0.4s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
-        .action-card-income { background: var(--color-income-bg) !important; color: var(--color-income-text) !important; }
-        .action-card-expense { background: var(--color-expense-bg) !important; color: var(--color-expense-text) !important; }
+        .action-card-income { background: var(--color-income-bg) !important; color: var(--color-income-text) !important; backdrop-filter: none; }
+        .action-card-expense { background: var(--color-expense-bg) !important; color: var(--color-expense-text) !important; backdrop-filter: none; }
 
-        /* Pocket Chip Styling - Updated for full color and larger text */
         .pocket-chip {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 140px;
-            padding: 1.25rem;
+            min-width: 140px; 
+            padding: 1rem; /* צמצום קל של ריווח פנימי כדי לפנות מקום לטקסט הגדול */
             border: none;
             color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pocket-chip::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
         }
 
         .pocket-chip.inactive {
@@ -60,7 +75,7 @@
 
         .pocket-chip.active {
             transform: translateY(-6px);
-            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15);
             z-index: 10;
         }
 
@@ -109,14 +124,13 @@
 <body class="p-4 md:p-8">
 
     <div class="max-w-md mx-auto">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-8">
+        <header class="flex justify-between items-center mb-10">
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight">SmartWallet</h1>
-                <p class="text-slate-500 text-sm font-medium">ניהול כספים חכם ומעוצב</p>
+                <p class="text-slate-600 text-sm font-medium">ניהול כספים חכם ומעוצב</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleSettings()" class="w-12 h-12 bit-card flex items-center justify-center hover:bg-slate-100 transition">
+                <button onclick="toggleSettings()" class="w-12 h-12 bit-card flex items-center justify-center hover:bg-slate-100/50 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                     </svg>
@@ -124,7 +138,6 @@
             </div>
         </header>
 
-        <!-- VIEW 1: ACTIONS -->
         <div id="viewActions" class="view-content active">
             <div id="actionCard" class="bit-card p-6 shadow-xl action-card-income">
                 <div class="flex bg-black/5 p-1 rounded-2xl mb-8">
@@ -159,14 +172,12 @@
             </div>
         </div>
 
-        <!-- VIEW 2: HISTORY -->
         <div id="viewHistory" class="view-content">
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-slate-700">הכיסים שלך</h3>
                     <button id="clearFilter" onclick="filterByPocket(null)" class="hidden text-xs font-bold px-3 py-1 rounded-full bg-slate-200 text-slate-700">הצג הכל</button>
                 </div>
-                <!-- Pockets Container with larger UI -->
                 <div id="pocketsContainer" class="flex gap-4 overflow-x-auto pb-6 pt-2 no-scrollbar"></div>
             </div>
 
@@ -175,8 +186,7 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-100 px-10 py-5 flex justify-around items-center z-40 bg-white/90 backdrop-blur-xl shadow-lg">
+    <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-100/50 px-10 py-5 flex justify-around items-center z-40 bg-white/70 backdrop-blur-xl shadow-lg">
         <button onclick="switchView('actions')" id="navActions" class="nav-item active flex flex-col items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             <span class="text-[10px] font-bold">חדש</span>
@@ -187,9 +197,8 @@
         </button>
     </nav>
 
-    <!-- Settings Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center">
-        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp bg-white">
+        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp bg-white/90">
             <h3 class="text-xl font-extrabold mb-6 text-slate-900">הגדרות כיסים</h3>
             <div class="space-y-6">
                 <div>
@@ -202,7 +211,7 @@
                 </div>
                 <div id="pocketsManagerList" class="max-h-60 overflow-y-auto space-y-3 no-scrollbar"></div>
             </div>
-            <button onclick="toggleSettings()" class="w-full mt-8 py-4 text-slate-500 font-bold bg-slate-100 rounded-2xl">סגור</button>
+            <button onclick="toggleSettings()" class="w-full mt-8 py-4 text-slate-500 font-bold bg-slate-100/50 rounded-2xl">סגור</button>
         </div>
     </div>
 
@@ -297,13 +306,13 @@
                 const chip = document.createElement('div');
                 chip.onclick = () => filterByPocket(p.id);
                 
-                // Set pocket color as background, with opacity if inactive
-                chip.className = `bit-card pocket-chip flex-shrink-0 flex flex-col items-center justify-center cursor-pointer ${isActive ? 'active' : 'inactive'}`;
+                chip.className = `bit-card pocket-chip flex-shrink-0 cursor-pointer ${isActive ? 'active' : 'inactive'}`;
                 chip.style.backgroundColor = p.color;
 
+                // הגדלת טקסט מקסימלית בתוך הכפתור
                 chip.innerHTML = `
-                    <span class="text-xs font-black uppercase tracking-widest mb-2 opacity-90">${p.name}</span>
-                    <span class="text-xl font-extrabold">₪${p.balance.toLocaleString()}</span>
+                    <span class="text-lg font-extrabold uppercase tracking-tighter leading-none mb-1 text-white">${p.name}</span>
+                    <span class="text-3xl font-black leading-none text-white">₪${p.balance.toLocaleString()}</span>
                 `;
                 container.appendChild(chip);
 
@@ -313,7 +322,7 @@
                 select.appendChild(opt);
 
                 const item = document.createElement('div');
-                item.className = "flex justify-between items-center p-4 rounded-2xl border-r-4 bg-slate-50";
+                item.className = "flex justify-between items-center p-4 rounded-2xl border-r-4 bg-slate-50/70";
                 item.style.borderColor = p.color;
                 item.innerHTML = `<span class="font-bold">${p.name}</span><button onclick="removePocket('${p.id}')" class="text-rose-600 font-bold text-xs uppercase">מחק</button>`;
                 manager.appendChild(item);
@@ -378,7 +387,7 @@
             
             if (selectedFilter) {
                 const p = pockets.find(p => p.id === selectedFilter);
-                title.innerHTML = `פעולות בכיס <span style="color: ${p?.color}">${p?.name}</span>`;
+                title.innerHTML = `פעולות בכיס <span style="color: ${p?.color}; font-weight: bold;">${p?.name}</span>`;
             } else {
                 title.innerText = "כל הפעולות";
             }
