@@ -29,6 +29,7 @@
             color: var(--bit-text-main);
             min-height: 100vh;
             padding-bottom: 110px;
+            overflow-x: hidden;
         }
 
         .bit-card {
@@ -47,7 +48,7 @@
         .pocket-chip {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 140px; 
-            padding: 1rem; /* צמצום קל של ריווח פנימי כדי לפנות מקום לטקסט הגדול */
+            padding: 1rem;
             border: none;
             color: white;
             position: relative;
@@ -67,24 +68,10 @@
             pointer-events: none;
         }
 
-        .pocket-chip.inactive {
-            opacity: 0.6;
-            transform: scale(0.95);
-            filter: grayscale(0.2);
-        }
+        .pocket-chip.inactive { opacity: 0.6; transform: scale(0.95); filter: grayscale(0.2); }
+        .pocket-chip.active { transform: translateY(-6px); box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15); z-index: 10; }
 
-        .pocket-chip.active {
-            transform: translateY(-6px);
-            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15);
-            z-index: 10;
-        }
-
-        .btn-bit {
-            background-color: var(--bit-text-main);
-            color: white;
-            transition: all 0.2s;
-        }
-
+        .btn-bit { background-color: var(--bit-text-main); color: white; transition: all 0.2s; }
         .nav-item { color: var(--bit-text-muted); transition: all 0.2s ease; }
         .nav-item.active { color: var(--bit-cyan); }
 
@@ -97,27 +84,44 @@
             color: var(--bit-text-main) !important;
         }
 
-        .history-card {
-            border: none !important;
+        .swipe-container {
             position: relative;
             overflow: hidden;
+            border-radius: 24px;
+            touch-action: pan-y;
+            background: transparent;
         }
         
-        .history-card::before {
-            content: '';
+        .swipe-action-indicator {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: currentColor;
-            opacity: 0.22;
+            top: 0; bottom: 0; width: 100%;
+            display: flex; align-items: center;
+            padding: 0 25px;
+            font-weight: 800;
+            color: white;
             z-index: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .swipe-content {
+            position: relative;
+            z-index: 1;
+            transition: transform 0.1s ease-out;
+            background: var(--bit-card-bg);
+            backdrop-filter: blur(12px);
         }
 
-        .history-card > * { position: relative; z-index: 1; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
@@ -138,6 +142,7 @@
             </div>
         </header>
 
+        <!-- Main View: Add New -->
         <div id="viewActions" class="view-content active">
             <div id="actionCard" class="bit-card p-6 shadow-xl action-card-income">
                 <div class="flex bg-black/5 p-1 rounded-2xl mb-8">
@@ -172,6 +177,7 @@
             </div>
         </div>
 
+        <!-- History View -->
         <div id="viewHistory" class="view-content">
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
@@ -186,6 +192,7 @@
         </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-100/50 px-10 py-5 flex justify-around items-center z-40 bg-white/70 backdrop-blur-xl shadow-lg">
         <button onclick="switchView('actions')" id="navActions" class="nav-item active flex flex-col items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
@@ -197,21 +204,68 @@
         </button>
     </nav>
 
-    <div id="settingsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center">
-        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp bg-white/90">
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bit-card w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 animate__animated animate__slideInUp bg-white/95">
             <h3 class="text-xl font-extrabold mb-6 text-slate-900">הגדרות כיסים</h3>
             <div class="space-y-6">
                 <div>
                     <label class="text-xs font-bold text-slate-500 block mb-3 uppercase">הוספת כיס חדש</label>
                     <div class="flex items-center gap-3">
-                        <input type="color" id="newPocketColor" value="#0ea5e9" class="cursor-pointer h-12 w-12 rounded-xl border-none p-0">
+                        <input type="color" id="newPocketColor" value="#0ea5e9" class="cursor-pointer h-12 w-12 rounded-xl border-none p-0 bg-transparent">
                         <input type="text" id="newPocketName" class="flex-1 p-4 rounded-2xl font-bold text-right outline-none" placeholder="שם הכיס">
                         <button onclick="addPocket()" class="btn-bit w-12 h-12 rounded-2xl font-bold flex items-center justify-center shadow-md">+</button>
                     </div>
                 </div>
+                <label class="text-xs font-bold text-slate-500 block -mb-3 uppercase">עריכת כיסים קיימים</label>
                 <div id="pocketsManagerList" class="max-h-60 overflow-y-auto space-y-3 no-scrollbar"></div>
             </div>
             <button onclick="toggleSettings()" class="w-full mt-8 py-4 text-slate-500 font-bold bg-slate-100/50 rounded-2xl">סגור</button>
+        </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div id="editModal" class="fixed inset-0 modal-overlay hidden z-[60] flex items-center justify-center p-6">
+        <div class="bit-card w-full max-w-sm p-8 animate__animated animate__zoomIn bg-white">
+            <h3 class="text-xl font-extrabold mb-6 text-slate-900">עריכת פעולה</h3>
+            <div class="space-y-5">
+                <input type="hidden" id="editTxId">
+                <div class="flex bg-slate-100 p-1 rounded-2xl">
+                    <button id="editTypeIncome" onclick="setEditType('income')" class="flex-1 py-2 rounded-xl font-bold transition-all">הכנסה</button>
+                    <button id="editTypeExpense" onclick="setEditType('expense')" class="flex-1 py-2 rounded-xl font-bold transition-all">הוצאה</button>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">כיס יעד</label>
+                    <select id="editPocketSelect" class="w-full p-4 rounded-2xl font-bold outline-none text-sm"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase text-right">סכום</label>
+                    <input type="number" id="editAmount" class="w-full p-4 rounded-2xl text-2xl font-black text-left outline-none" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">תיאור</label>
+                    <input type="text" id="editDescription" class="w-full p-4 rounded-2xl font-medium outline-none text-sm" placeholder="תיאור הפעולה">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeEdit()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl">ביטול</button>
+                <button onclick="saveEdit()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl">שמור</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="confirmModal" class="fixed inset-0 modal-overlay hidden z-[60] flex items-center justify-center p-6">
+        <div class="bit-card w-full max-w-xs p-8 animate__animated animate__zoomIn bg-white">
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </div>
+            <h3 class="text-xl font-bold text-center mb-2">מחיקת פעולה?</h3>
+            <p class="text-slate-500 text-center text-sm mb-8">הפעולה תוסר לצמיתות והיתרה בכיס תעודכן.</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl">ביטול</button>
+                <button id="finalDeleteBtn" class="flex-1 py-4 bg-rose-600 text-white font-bold rounded-2xl">מחק</button>
+            </div>
         </div>
     </div>
 
@@ -223,7 +277,9 @@
             { id: 'p3', name: 'מזומן', balance: 0, color: '#f59e0b' }
         ];
         let currentType = 'income';
+        let editCurrentType = 'income';
         let selectedFilter = null;
+        let deleteIdPending = null;
 
         window.onload = () => {
             renderPockets();
@@ -264,6 +320,19 @@
             }
         }
 
+        function setEditType(type) {
+            editCurrentType = type;
+            const incBtn = document.getElementById('editTypeIncome');
+            const expBtn = document.getElementById('editTypeExpense');
+            if (type === 'income') {
+                incBtn.className = "flex-1 py-2 rounded-xl bg-emerald-500 text-white font-bold transition-all shadow-sm";
+                expBtn.className = "flex-1 py-2 rounded-xl text-slate-500 font-bold transition-all";
+            } else {
+                expBtn.className = "flex-1 py-2 rounded-xl bg-rose-500 text-white font-bold transition-all shadow-sm";
+                incBtn.className = "flex-1 py-2 rounded-xl text-slate-500 font-bold transition-all";
+            }
+        }
+
         function toggleSettings() { document.getElementById('settingsModal').classList.toggle('hidden'); }
 
         function addPocket() {
@@ -283,6 +352,23 @@
             renderPockets();
         }
 
+        function updatePocketData(id, name, color) {
+            const pocket = pockets.find(p => p.id === id);
+            if (pocket) {
+                pocket.name = name;
+                pocket.color = color;
+                transactions.forEach(t => {
+                    if (t.pocketId === id) {
+                        t.pocketColor = color;
+                        t.pocketName = name;
+                    }
+                });
+                saveData();
+                renderPockets();
+                updateUI();
+            }
+        }
+
         function filterByPocket(id) {
             selectedFilter = id;
             renderPockets();
@@ -292,11 +378,13 @@
         function renderPockets() {
             const container = document.getElementById('pocketsContainer');
             const select = document.getElementById('pocketSelect');
+            const editSelect = document.getElementById('editPocketSelect');
             const manager = document.getElementById('pocketsManagerList');
             const clearBtn = document.getElementById('clearFilter');
             
             container.innerHTML = '';
             select.innerHTML = '';
+            editSelect.innerHTML = '';
             manager.innerHTML = '';
 
             selectedFilter ? clearBtn.classList.remove('hidden') : clearBtn.classList.add('hidden');
@@ -305,26 +393,35 @@
                 const isActive = selectedFilter === p.id;
                 const chip = document.createElement('div');
                 chip.onclick = () => filterByPocket(p.id);
-                
                 chip.className = `bit-card pocket-chip flex-shrink-0 cursor-pointer ${isActive ? 'active' : 'inactive'}`;
                 chip.style.backgroundColor = p.color;
-
-                // הגדלת טקסט מקסימלית בתוך הכפתור
                 chip.innerHTML = `
                     <span class="text-lg font-extrabold uppercase tracking-tighter leading-none mb-1 text-white">${p.name}</span>
                     <span class="text-3xl font-black leading-none text-white">₪${p.balance.toLocaleString()}</span>
                 `;
                 container.appendChild(chip);
 
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.innerText = p.name;
-                select.appendChild(opt);
+                const createOption = () => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.innerText = p.name;
+                    return opt;
+                };
+                select.appendChild(createOption());
+                editSelect.appendChild(createOption());
 
                 const item = document.createElement('div');
-                item.className = "flex justify-between items-center p-4 rounded-2xl border-r-4 bg-slate-50/70";
+                item.className = "flex justify-between items-center p-3 rounded-2xl border-r-4 bg-slate-50/70";
                 item.style.borderColor = p.color;
-                item.innerHTML = `<span class="font-bold">${p.name}</span><button onclick="removePocket('${p.id}')" class="text-rose-600 font-bold text-xs uppercase">מחק</button>`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 flex-1">
+                        <input type="color" value="${p.color}" onchange="updatePocketData('${p.id}', this.nextElementSibling.value, this.value)" class="w-8 h-8 border-none p-0 rounded-lg cursor-pointer bg-transparent">
+                        <input type="text" value="${p.name}" onblur="updatePocketData('${p.id}', this.value, this.previousElementSibling.value)" class="bg-transparent border-none p-1 font-bold w-full text-slate-800 outline-none focus:bg-white rounded-md">
+                    </div>
+                    <button onclick="removePocket('${p.id}')" class="text-rose-600 p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7" /></svg>
+                    </button>
+                `;
                 manager.appendChild(item);
             });
         }
@@ -348,18 +445,17 @@
                 description: descInput.value || (currentType === 'income' ? "הכנסה" : "הוצאה"),
                 date: new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'})
             };
-
             currentType === 'income' ? pocket.balance += amount : pocket.balance -= amount;
             transactions.unshift(transaction);
-            saveData();
 
+            saveData();
             const saveBtn = document.getElementById('saveBtn');
-            const originalText = saveBtn.innerHTML;
-            saveBtn.innerHTML = "<span>עודכן בהצלחה!</span>";
+            const originalHTML = saveBtn.innerHTML;
+            saveBtn.innerHTML = "<span>בוצע!</span>";
             saveBtn.classList.replace('btn-bit', 'bg-emerald-600');
             
             setTimeout(() => {
-                saveBtn.innerHTML = originalText;
+                saveBtn.innerHTML = originalHTML;
                 saveBtn.className = "w-full btn-bit font-black py-5 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md";
                 amountInput.value = '';
                 descInput.value = '';
@@ -368,15 +464,115 @@
             }, 800);
         }
 
-        function deleteTransaction(id) {
-            const tx = transactions.find(t => t.id === id);
+        function openEdit(id) {
+            const tx = transactions.find(t => t.id == id);
             if (!tx) return;
-            const pocket = pockets.find(p => p.id === tx.pocketId);
-            if (pocket) tx.type === 'income' ? pocket.balance -= tx.amount : pocket.balance += tx.amount;
-            transactions = transactions.filter(t => t.id !== id);
+
+            document.getElementById('editTxId').value = id;
+            document.getElementById('editAmount').value = tx.amount;
+            document.getElementById('editDescription').value = tx.description;
+            document.getElementById('editPocketSelect').value = tx.pocketId;
+            setEditType(tx.type);
+            
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEdit() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveEdit() {
+            const id = document.getElementById('editTxId').value;
+            const amount = parseFloat(document.getElementById('editAmount').value);
+            const description = document.getElementById('editDescription').value;
+            const pocketId = document.getElementById('editPocketSelect').value;
+
+            if (isNaN(amount) || amount <= 0) return;
+
+            const tx = transactions.find(t => t.id == id);
+            const oldPocket = pockets.find(p => p.id === tx.pocketId);
+            const newPocket = pockets.find(p => p.id === pocketId);
+
+            // Revert old impact
+            tx.type === 'income' ? oldPocket.balance -= tx.amount : oldPocket.balance += tx.amount;
+            
+            // Apply new data
+            tx.amount = amount;
+            tx.description = description || (editCurrentType === 'income' ? "הכנסה" : "הוצאה");
+            tx.type = editCurrentType;
+            tx.pocketId = pocketId;
+            tx.pocketName = newPocket.name;
+            tx.pocketColor = newPocket.color;
+
+            // Apply new impact
+            tx.type === 'income' ? newPocket.balance += tx.amount : newPocket.balance -= tx.amount;
+
             saveData();
             renderPockets();
             updateUI();
+            closeEdit();
+        }
+
+        function askDelete(id) {
+            deleteIdPending = id;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            document.getElementById('finalDeleteBtn').onclick = () => {
+                confirmDelete(deleteIdPending);
+                closeConfirm();
+            };
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            deleteIdPending = null;
+        }
+
+        function confirmDelete(id) {
+            const tx = transactions.find(t => t.id == id);
+            if (!tx) return;
+            const pocket = pockets.find(p => p.id === tx.pocketId);
+            if (pocket) tx.type === 'income' ? pocket.balance -= tx.amount : pocket.balance += tx.amount;
+            transactions = transactions.filter(t => t.id != id);
+            saveData();
+            renderPockets();
+            updateUI();
+        }
+
+        // Swipe Handling Logic
+        let touchStartX = 0;
+        function handleTouchStart(e) { touchStartX = e.changedTouches[0].screenX; }
+        
+        function handleTouchMove(e, id) {
+            const currentX = e.changedTouches[0].screenX;
+            const diff = currentX - touchStartX;
+            const content = document.getElementById(`tx-content-${id}`);
+            const indicatorRight = document.getElementById(`ind-right-${id}`);
+            const indicatorLeft = document.getElementById(`ind-left-${id}`);
+            
+            content.style.transform = `translateX(${diff}px)`;
+            
+            if (diff > 20) { // Right (Delete)
+                indicatorRight.style.opacity = Math.min(diff / 100, 1);
+                indicatorRight.style.background = `rgba(239, 68, 68, ${Math.min(diff / 80, 1)})`;
+                indicatorLeft.style.opacity = 0;
+            } else if (diff < -20) { // Left (Edit)
+                indicatorLeft.style.opacity = Math.min(Math.abs(diff) / 100, 1);
+                indicatorLeft.style.background = `rgba(0, 188, 212, ${Math.min(Math.abs(diff) / 80, 1)})`;
+                indicatorRight.style.opacity = 0;
+            }
+        }
+
+        function handleTouchEnd(e, id) {
+            const touchEndX = e.changedTouches[0].screenX;
+            const diff = touchEndX - touchStartX;
+            const content = document.getElementById(`tx-content-${id}`);
+            
+            content.style.transform = '';
+            document.getElementById(`ind-right-${id}`).style.opacity = 0;
+            document.getElementById(`ind-left-${id}`).style.opacity = 0;
+            
+            if (diff > 80) askDelete(id);
+            else if (diff < -80) openEdit(id);
         }
 
         function updateUI() {
@@ -398,34 +594,38 @@
             }
 
             filtered.forEach(t => {
-                const card = document.createElement('div');
-                card.className = "bit-card p-5 flex justify-between items-center history-card animate__animated animate__fadeInUp group";
-                card.style.color = t.pocketColor;
                 const isIncome = t.type === 'income';
                 const actionColor = isIncome ? 'var(--color-success)' : 'var(--color-danger)';
-                
-                card.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/90 font-bold shadow-sm" style="color: ${actionColor}">
-                            ${isIncome ? '↑' : '↓'}
+                const swipeWrapper = document.createElement('div');
+                swipeWrapper.className = "swipe-container animate__animated animate__fadeInUp";
+                swipeWrapper.innerHTML = `
+                    <div id="ind-right-${t.id}" class="swipe-action-indicator justify-start">מחיקה</div>
+                    <div id="ind-left-${t.id}" class="swipe-action-indicator justify-end">עריכה</div>
+                    <div id="tx-content-${t.id}" class="swipe-content bit-card p-5 flex justify-between items-center" 
+                         style="color: ${t.pocketColor}"
+                         ontouchstart="handleTouchStart(event)" 
+                         ontouchmove="handleTouchMove(event, ${t.id})" 
+                         ontouchend="handleTouchEnd(event, ${t.id})">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/90 font-bold shadow-sm" style="color: ${actionColor}">
+                                ${isIncome ? '↑' : '↓'}
+                            </div>
+                            <div class="pointer-events-none">
+                                <p class="font-extrabold text-base leading-tight text-slate-900">${t.description}</p>
+                                <p class="text-[10px] font-bold text-slate-700">${t.date} • ${t.pocketName}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-extrabold text-base leading-tight text-slate-900">${t.description}</p>
-                            <p class="text-[10px] font-bold text-slate-700">${t.date} • ${t.pocketName}</p>
+                        <div class="flex items-center gap-4 pointer-events-none">
+                            <p class="font-black text-lg" style="color: ${actionColor}">
+                                ${isIncome ? '+' : '-'}${t.amount.toLocaleString()} ₪
+                            </p>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <p class="font-black text-lg" style="color: ${actionColor}">
-                            ${isIncome ? '+' : '-'}${t.amount.toLocaleString()} ₪
-                        </p>
-                        <button onclick="deleteTransaction(${t.id})" class="p-2 rounded-full hover:bg-black/10 transition-colors text-slate-900/60 hover:text-rose-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
                     </div>
                 `;
-                list.appendChild(card);
+                list.appendChild(swipeWrapper);
             });
         }
     </script>
 </body>
 </html>
+
