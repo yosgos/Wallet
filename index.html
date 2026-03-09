@@ -349,7 +349,8 @@
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg></div>
+                </svg>
+            </div>
             <h3 id="confirmTitle" class="text-xl font-bold text-center mb-2">מחיקה?</h3>
             <p id="confirmText" class="text-slate-500 text-center text-sm mb-8"></p>
             <div id="confirmActions" class="flex gap-3"></div>
@@ -513,23 +514,44 @@
             const descInput = document.getElementById('description');
             const pocketId = document.getElementById('pocketSelect').value;
             const amount = parseFloat(amountInput.value);
+
             if (isNaN(amount) || amount <= 0) return;
+
             const pocket = pockets.find(p => p.id === pocketId);
             const transaction = {
-                id: Date.now(), type: currentType, amount, pocketName: pocket.name, pocketId: pocketId, pocketColor: pocket.color,
+                id: Date.now(),
+                type: currentType,
+                amount,
+                pocketName: pocket.name,
+                pocketId: pocketId,
+                pocketColor: pocket.color,
                 description: descInput.value || (currentType === 'income' ? "הכנסה" : "הוצאה"),
                 date: new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
             };
+
             currentType === 'income' ? pocket.balance += amount : pocket.balance -= amount;
             transactions.unshift(transaction);
+
+            // שמירה מקומית (מה שהיה לך)
             saveData();
+
+            // --- הוספת השורה הזו כדי לשמור בענן ---
+            if (window.saveToCloud) {
+                window.saveToCloud();
+            }
+            // --------------------------------------
+
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.innerHTML = "<span>בוצע!</span>";
             saveBtn.classList.replace('btn-bit', 'bg-emerald-600');
+
             setTimeout(() => {
                 saveBtn.innerHTML = `<span>עדכן ארנק</span>`;
                 saveBtn.className = "w-full btn-bit font-black py-5 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md";
-                amountInput.value = ''; descInput.value = ''; renderPockets(); switchView('history');
+                amountInput.value = '';
+                descInput.value = '';
+                renderPockets();
+                switchView('history');
             }, 800);
         }
 
@@ -634,58 +656,58 @@
         }
     </script>
     <!-- תשתית Firebase - להדביק בסוף הקובץ לפני ה-body הסוגר -->
-   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYudDYKPO0qBPDnWIXc4uK8Jgh7acGM4Y",
-    authDomain: "wallet-4de4e.firebaseapp.com",
-    projectId: "wallet-4de4e",
-    storageBucket: "wallet-4de4e.firebasestorage.app",
-    messagingSenderId: "968995451266",
-    appId: "1:968995451266:web:260585c495f4462f275f9b"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYudDYKPO0qBPDnWIXc4uK8Jgh7acGM4Y",
+            authDomain: "wallet-4de4e.firebaseapp.com",
+            projectId: "wallet-4de4e",
+            storageBucket: "wallet-4de4e.firebasestorage.app",
+            messagingSenderId: "968995451266",
+            appId: "1:968995451266:web:260585c495f4462f275f9b"
+        };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-  // שמירה לענן
-  window.saveToCloud = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      await setDoc(doc(db, "users", user.uid), {
-        transactions: transactions,
-        pockets: pockets
-      });
-    }
-  };
+        // שמירה לענן
+        window.saveToCloud = async () => {
+            const user = auth.currentUser;
+            if (user) {
+                await setDoc(doc(db, "users", user.uid), {
+                    transactions: transactions,
+                    pockets: pockets
+                });
+            }
+        };
 
-  // טעינה מהענן
-  window.loadFromCloud = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const docSnap = await getDoc(doc(db, "users", user.uid));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        transactions = data.transactions || [];
-        pockets = data.pockets || pockets;
-        updateUI(); // פונקציה שמעדכנת את התצוגה שלך
-        renderPockets(); // פונקציה שמרנדרת את הכיסים שלך
-      }
-    }
-  };
+        // טעינה מהענן
+        window.loadFromCloud = async () => {
+            const user = auth.currentUser;
+            if (user) {
+                const docSnap = await getDoc(doc(db, "users", user.uid));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    transactions = data.transactions || [];
+                    pockets = data.pockets || pockets;
+                    updateUI(); // פונקציה שמעדכנת את התצוגה שלך
+                    renderPockets(); // פונקציה שמרנדרת את הכיסים שלך
+                }
+            }
+        };
 
-  // זיהוי התחברות
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      window.loadFromCloud();
-    }
-  });
-</script>
+        // זיהוי התחברות
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.loadFromCloud();
+            }
+        });
+    </script>
 </body>
 
 </html>
