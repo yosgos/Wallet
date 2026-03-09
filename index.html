@@ -634,53 +634,57 @@
         }
     </script>
     <!-- תשתית Firebase - להדביק בסוף הקובץ לפני ה-body הסוגר -->
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+   <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYudDYKPO0qBPDnWIXc4uK8Jgh7acGM4Y",
-    authDomain: "wallet-4de4e.firebaseapp.com",
-    projectId: "wallet-4de4e",
-    storageBucket: "wallet-4de4e.firebasestorage.app",
-    messagingSenderId: "968995451266",
-    appId: "1:968995451266:web:260585c495f4462f275f9b",
-    measurementId: "G-LM53FTF9LJ"
-  };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDYudDYKPO0qBPDnWIXc4uK8Jgh7acGM4Y",
+    authDomain: "wallet-4de4e.firebaseapp.com",
+    projectId: "wallet-4de4e",
+    storageBucket: "wallet-4de4e.firebasestorage.app",
+    messagingSenderId: "968995451266",
+    appId: "1:968995451266:web:260585c495f4462f275f9b"
+  };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
 
-  // פונקציית התחברות
-  window.loginWithGoogle = () => {
-    signInWithPopup(auth, provider)
-      .then((result) => console.log("שלום " + result.user.displayName))
-      .catch((error) => console.error("שגיאה:", error.message));
-  };
+  // שמירה לענן
+  window.saveToCloud = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      await setDoc(doc(db, "users", user.uid), {
+        transactions: transactions,
+        pockets: pockets
+      });
+    }
+  };
 
-  // פונקציית התנתקות
-  window.logout = () => signOut(auth);
+  // טעינה מהענן
+  window.loadFromCloud = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        transactions = data.transactions || [];
+        pockets = data.pockets || pockets;
+        updateUI(); // פונקציה שמעדכנת את התצוגה שלך
+        renderPockets(); // פונקציה שמרנדרת את הכיסים שלך
+      }
+    }
+  };
 
-  // האזנה למצב המשתמש - משנה את המראה של הלחצן אוטומטית
-  onAuthStateChanged(auth, (user) => {
-    const btn = document.getElementById('loginBtn');
-    if (user) {
-      // אם המשתמש מחובר: מציגים תמונה ושם
-      btn.innerHTML = `
-        <img src="${user.photoURL}" class="w-5 h-5 rounded-full">
-        <span>התנתק</span>
-      `;
-      btn.onclick = window.logout;
-    } else {
-      // אם לא מחובר: מחזירים למצב התחברות
-      btn.innerHTML = `
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="14">
-        <span>התחבר</span>
-      `;
-      btn.onclick = window.loginWithGoogle;
-    }
-  });
+  // זיהוי התחברות
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window.loadFromCloud();
+    }
+  });
 </script>
 </body>
 
