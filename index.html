@@ -634,57 +634,106 @@
         }
     </script>
     <!-- תשתית Firebase - להדביק בסוף הקובץ לפני ה-body הסוגר -->
-   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYudDYKPO0qBPDnWIXc4uK8Jgh7acGM4Y",
-    authDomain: "wallet-4de4e.firebaseapp.com",
-    projectId: "wallet-4de4e",
-    storageBucket: "wallet-4de4e.firebasestorage.app",
-    messagingSenderId: "968995451266",
-    appId: "1:968995451266:web:260585c495f4462f275f9b"
-  };
+  // הגדרות ה-Firebase שלך
+  const firebaseConfig = {
+    apiKey: "AIzaSyDYudDYKPO0qBPDnWIXc4uK8Jgh7acGM4Y",
+    authDomain: "wallet-4de4e.firebaseapp.com",
+    projectId: "wallet-4de4e",
+    storageBucket: "wallet-4de4e.firebasestorage.app",
+    messagingSenderId: "968995451266",
+    appId: "1:968995451266:web:260585c495f4462f275f9b",
+    measurementId: "G-LM53FTF9LJ"
+  };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+  // אתחול
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
 
-  // שמירה לענן
-  window.saveToCloud = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      await setDoc(doc(db, "users", user.uid), {
-        transactions: transactions,
-        pockets: pockets
-      });
-    }
-  };
+  // --- פתרון לשגיאת ה-ReferenceError: הפיכת הפונקציות לגלובליות ---
 
-  // טעינה מהענן
-  window.loadFromCloud = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const docSnap = await getDoc(doc(db, "users", user.uid));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        transactions = data.transactions || [];
-        pockets = data.pockets || pockets;
-        updateUI(); // פונקציה שמעדכנת את התצוגה שלך
-        renderPockets(); // פונקציה שמרנדרת את הכיסים שלך
-      }
-    }
-  };
+  window.loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("שגיאה בהתחברות:", error);
+    }
+  };
 
-  // זיהוי התחברות
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      window.loadFromCloud();
-    }
-  });
+  window.logout = async () => {
+    try {
+      await signOut(auth);
+      location.reload(); // רענון כדי לנקות נתונים מהזיכרון
+    } catch (error) {
+      console.error("שגיאה בהתנתקות:", error);
+    }
+  };
+
+  // פונקציית שמירה לענן (Firestore)
+  window.saveToCloud = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await setDoc(doc(db, "users", user.uid), {
+          transactions: transactions,
+          pockets: pockets
+        });
+        console.log("סונכרן לענן בהצלחה");
+      } catch (e) {
+        console.error("שגיאה בשמירה לענן:", e);
+      }
+    }
+  };
+
+  // פונקציית טעינה מהענן
+  window.loadFromCloud = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          // עדכון המשתנים הגלובליים של האפליקציה שלך
+          if (data.transactions) transactions = data.transactions;
+          if (data.pockets) pockets = data.pockets;
+          
+          // עדכון התצוגה (וודא שהפונקציות האלו קיימות בסקריפט הראשי שלך)
+          if (typeof updateUI === "function") updateUI();
+          if (typeof renderPockets === "function") renderPockets();
+          console.log("נתונים נטענו מהענן");
+        }
+      } catch (e) {
+        console.error("שגיאה בטעינה מהענן:", e);
+      }
+    }
+  };
+
+  // מאזין לשינוי מצב התחברות
+  onAuthStateChanged(auth, (user) => {
+    const loginBtn = document.getElementById('loginBtn');
+    if (user) {
+      console.log("משתמש מחובר:", user.displayName);
+      // שינוי הלחצן למצב מחובר
+      if (loginBtn) {
+        loginBtn.innerHTML = `<img src="${user.photoURL}" class="w-5 h-5 rounded-full"> <span>התנתק</span>`;
+        loginBtn.onclick = window.logout;
+      }
+      // טעינת הנתונים של המשתמש הספציפי
+      window.loadFromCloud();
+    } else {
+      console.log("אין משתמש מחובר");
+      if (loginBtn) {
+        loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="14"> <span>התחבר</span>`;
+        loginBtn.onclick = window.loginWithGoogle;
+      }
+    }
+  });
 </script>
 </body>
 
